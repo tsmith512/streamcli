@@ -4,21 +4,19 @@ import chalk from 'chalk';
 
 import * as tasks from './tasks';
 
-if (!process.env.CF_STREAM_KEY) {
-  console.log(chalk.red('Missing API Key'));
+if (!process.env.CF_STREAM_KEY || !process.env.CF_ACCT_TAG) {
+  console.log(chalk.red('Missing API Key or Account Tag, check .env'));
   process.exit();
 }
 
 const arg = process.argv[2] || false;
-
-console.log(chalk.gray('Testing Contentful Delivery API Access'));
 
 // If we don't have a task to run, print the index.
 if (!arg) {
   console.log(chalk.red('What do you want to do? Missing task argument.'));
 
   for (const className in tasks) {
-    if (['ContentfulTask', 'ContentfulTaskType'].includes(className)) {
+    if (['StreamTaskType', 'StreamTask'].includes(className)) {
       continue;
     }
 
@@ -36,7 +34,7 @@ if (!arg) {
 else if (typeof arg === 'string' && arg in tasks) {
   const taskClass = tasks[
     arg as unknown as keyof typeof tasks
-  ] as tasks.ContentfulTaskType;
+  ] as tasks.StreamTaskType;
   const task = new taskClass();
   task.getInfo();
 

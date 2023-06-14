@@ -1,3 +1,5 @@
+import chalk from 'chalk';
+
 export type StreamTaskType = {
   name: string;
   description: string;
@@ -25,3 +27,5 @@ export abstract class StreamTask {
     return this;
   }
 }
+
+export { RVIDEOS } from './report-videos';
