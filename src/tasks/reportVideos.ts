@@ -1,9 +1,3 @@
-/**
- * @file report-videos.ts
- *
- * Queries all videos accessible to the given key.
- */
-
 import chalk from 'chalk';
 
 import path from 'path';
@@ -13,13 +7,14 @@ import { StreamTask } from '.';
 
 interface VideoReportRow {
   id: string;
+  title: string;
   created: string;
   modified: string;
   watch: string;
   liveInput: string | false,
 }
 
-export class RVIDEOS extends StreamTask {
+export class reportVideos extends StreamTask {
   name = 'Video Report';
   description = 'Queries all videos accessible to the given key.';
   type = 'report';
@@ -58,6 +53,7 @@ export class RVIDEOS extends StreamTask {
       // Make my spreadsheet row.
       report.push({
         id: video.uid,
+        title: video.meta?.name || '',
         created: video.created,
         modified: video.modified,
         watch: video.preview,
@@ -66,8 +62,9 @@ export class RVIDEOS extends StreamTask {
     }
 
     console.log(report);
-    // const csvText = [header.join(','), ...rows.map((row) => row.join(','))].join('\n');
-    // fs.writeFileSync(path.join(process.cwd(), '/output/RTYPES.csv'), csvText);
+
+    const csvText = [Object.keys(report[0]).join(','), ...report.map((row) => Object.values(row).join(','))].join('\n');
+    fs.writeFileSync(path.join(process.cwd(), '/output/reportVideos.csv'), csvText);
 
     return true;
   }

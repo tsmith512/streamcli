@@ -28,4 +28,4 @@ export abstract class StreamTask {
   }
 }
 
-export { RVIDEOS } from './report-videos';
+export { reportVideos } from './reportVideos';
