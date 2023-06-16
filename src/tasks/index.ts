@@ -29,3 +29,6 @@ export abstract class StreamTask {
 }
 
 export { reportVideos } from './reportVideos';
+export { reportLiveInputs } from './reportLiveInputs';
+export { deleteLiveInputs } from './deleteLiveInputs';
+export { createLLHLSgroup } from './20230614-createLLHLSgroup';
