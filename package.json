@@ -1,26 +1,40 @@
 {
   "name": "stream-hacks",
-  "version": "1.0.0",
-  "description": "Taylor Smith's collection of Stream pieces",
+  "version": "2.0.0",
+  "description": "Stream API client for PM tasks",
   "scripts": {
-    "lint": "eslint --ignore-path .eslintignore --ext .js,.ts .",
-    "prettier": "prettier --write \"src/**/*.ts\"",
-    "task": "NODE_NO_WARNINGS=1 ts-node src/index.ts"
+    "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
+    "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
+    "prettier": "prettier --write '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
+    "task": "NODE_NO_WARNINGS=1 ts-node-esm src/index.ts"
   },
   "author": "Taylor Smith <tsmith@cloudflare.com>",
-  "license": "ISC",
+  "license": "Internal Use Only",
+  "eslintConfig": {
+    "root": true,
+    "extends": [
+      "typescript",
+      "prettier"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "@typescript-eslint/eslint-plugin": "^4.16.1",
+    "@typescript-eslint/parser": "^4.16.1",
+    "eslint": "^7.21.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-config-typescript": "^3.0.0",
+    "prettier": "^2.3.0",
+    "ts-loader": "^9.2.2",
+    "typescript": "^4.3.2",
+    "webpack": "^5.38.1",
+    "webpack-cli": "^4.7.0"
+  },
   "dependencies": {
-    "@types/node": "^18",
-    "@typescript-eslint/eslint-plugin": "^5.47.0",
-    "@typescript-eslint/parser": "^5.47.0",
     "chalk": "^4.1",
-    "dotenv": "^16",
-    "eslint": "^8.7.0",
-    "eslint-config-prettier": "^8.3.0",
-    "nodemon": "^2.0",
-    "prettier": "^2.8",
-    "ts-node": "^10.9",
-    "typescript": "^4.9",
+    "dotenv": "^16.0.3",
+    "nodemon": "^2.0.20",
+    "ts-node": "^10.9.1",
     "yesno": "^0.4.0"
   }
 }
