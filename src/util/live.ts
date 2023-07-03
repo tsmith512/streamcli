@@ -13,6 +13,35 @@ export interface liveInputDetails {
   watch?: string;
 }
 
+export const getLiveInput = async (id: string): Promise<liveInputDetails | false > => {
+  const response = await fetch(`${process.env.CF_API}/${process.env.CF_ACCT_TAG}/stream/live_inputs/${id}`, {
+    headers: {
+      'Authorization': `Bearer ${process.env.CF_STREAM_KEY}`,
+    },
+  });
+
+  if (!response.ok) {
+    debug('info', `HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  const payload = await response.json();
+
+  if (payload.success && payload.result?.uid) {
+    return {
+      id: payload.result.uid,
+      title: payload.result?.meta?.name || 'undefined',
+      rtmpsKey: payload.result?.rtmps?.streamKey || '',
+      rtmpsUrl: payload.result?.rtmps?.url || '',
+      srtPassphrase: payload.result?.srt?.passphrase || '',
+      srtId: payload.result?.srt?.streamId || '',
+      srtUrl: payload.result?.srt?.url || '',
+      watch: `https://customer-igynxd2rwhmuoxw8.cloudflarestream.com/${payload.result.uid}/iframe`,
+    };
+  } else {
+    return false;
+  }
+};
+
 export const getLiveInputs = async () => {
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   const inputs: any[] = [];

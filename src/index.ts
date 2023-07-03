@@ -2,7 +2,9 @@ import 'dotenv/config';
 import chalk from 'chalk';
 import yesno from 'yesno';
 import { getVodVideos } from './util/vod';
-import { createLiveInput, deleteLiveInput } from './util/live';
+import { createLiveInput, deleteLiveInput, getLiveInput, getLiveInputs } from './util/live';
+import { table } from 'table';
+import { format } from './util/output';
 
 if (!process.env.CF_STREAM_KEY || !process.env.CF_ACCT_TAG) {
   console.log(chalk.red('Missing API Key or Account Tag, check .env'));
@@ -27,8 +29,10 @@ switch (arg) {
     getVodVideos().then(x => console.log(x));
     break;
   case 'live':
-    if (process.argv[3] == 'create') {
-      createLiveInput(process.argv[4]).then(x => console.log(x));
+    if (process.argv[3] == 'lookup') {
+      getLiveInput(process.argv[4]).then(x => format(x));
+    } else if (process.argv[3] == 'create') {
+      createLiveInput(process.argv[4]).then(x => format(x));
     } else if (process.argv[3] == 'delete') {
       deleteLiveInput(process.argv[4]);
     }
