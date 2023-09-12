@@ -11,8 +11,6 @@ if (!process.env.CF_STREAM_KEY || !process.env.CF_ACCT_TAG) {
   process.exit();
 }
 
-const arg = process.argv[2] || false;
-
 /**
  * Print usage information
  */
