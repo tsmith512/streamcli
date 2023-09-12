@@ -9,7 +9,7 @@ const levelMap = {
 };
 
 export const debug = (level: errorLevel, message: string): void => {
-  if (process.env.debug || level === 'error') {
+  if (process.env.DEBUG || level === 'error') {
     console.log(levelMap[level](message));
   }
 };

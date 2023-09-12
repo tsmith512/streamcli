@@ -1,7 +1,8 @@
 import { table } from "table";
 import { debug } from "./debug";
 
-type formatInput = false | Record<string, string | number | boolean | null | undefined>;
+// @TODO: This is not how to do this but I'm in a hurry
+type formatInput = false | Object;
 
 export const format = (input: formatInput): void => {
   if (input === false) {

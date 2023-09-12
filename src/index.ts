@@ -1,10 +1,10 @@
 import 'dotenv/config';
 import chalk from 'chalk';
-import yesno from 'yesno';
 import { getVodVideos } from './util/vod';
-import { createLiveInput, deleteLiveInput, getLiveInput, getLiveInputs } from './util/live';
-import { table } from 'table';
+import { createLiveInput, deleteLiveInput, getLiveInput } from './util/live';
 import { format } from './util/output';
+import cliSelect from 'cli-select';
+import prompts from 'prompts';
 
 if (!process.env.CF_STREAM_KEY || !process.env.CF_ACCT_TAG) {
   console.log(chalk.red('Missing API Key or Account Tag, check .env'));
@@ -24,20 +24,47 @@ Supported commands:
   - Nothin' yet. Chill.`);
 };
 
-switch (arg) {
-  case 'list':
-    getVodVideos().then(x => console.log(x));
-    break;
-  case 'live':
-    if (process.argv[3] == 'lookup') {
-      getLiveInput(process.argv[4]).then(x => format(x));
-    } else if (process.argv[3] == 'create') {
-      createLiveInput(process.argv[4]).then(x => format(x));
-    } else if (process.argv[3] == 'delete') {
-      deleteLiveInput(process.argv[4]);
-    }
-    break;
-  default:
-    readme();
-    break;
-}
+
+cliSelect({
+  values: {
+    live: 'Live',
+    vod: 'Video-on-Demand',
+  },
+  valueRenderer: (value, selected) => (selected) ? chalk.underline(value) : value,
+}).then((key) => {
+  switch (key.id) {
+    case 'vod':
+      getVodVideos().then(x => console.log(x));
+      break;
+    case 'live':
+      cliSelect({
+        values: {
+          'lookup': 'Get Live Input',
+          'create': 'Create New Live Input',
+          'delete': 'Delete Live Input',
+        },
+        valueRenderer: (value, selected) => (selected) ? chalk.underline(value) : value,
+      }).then(async (op) => {
+        const response = await prompts({
+          type: 'text',
+          name: 'id',
+          message: (op.id === 'create') ? 'Input name?' : 'Input ID?',
+        });
+        switch (op.id) {
+          case 'lookup':
+            await getLiveInput(response.id).then(x => format(x));
+            break;
+          case 'create':
+            await createLiveInput(response.id).then(x => format(x));
+            break;
+          case 'delete':
+            await deleteLiveInput(response.id);
+            break;
+        }
+      });
+      break;
+    default:
+      readme();
+      break;
+  }
+});
