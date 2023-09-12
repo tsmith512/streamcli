@@ -1,6 +1,7 @@
 import yesno from "yesno";
 import { debug } from "./debug";
 import chalk from "chalk";
+import { deleteVodVideo, getVodVideos } from "./vod";
 
 export interface liveInputDetails {
   id: string;
@@ -11,6 +12,7 @@ export interface liveInputDetails {
   srtId?: string;
   srtUrl?: string;
   watch?: string;
+  schedDel: number | null;
 }
 
 export const getLiveInput = async (id: string): Promise<liveInputDetails | false > => {
@@ -36,6 +38,7 @@ export const getLiveInput = async (id: string): Promise<liveInputDetails | false
       srtId: payload.result?.srt?.streamId || '',
       srtUrl: payload.result?.srt?.url || '',
       watch: `https://customer-igynxd2rwhmuoxw8.cloudflarestream.com/${payload.result.uid}/iframe`,
+      schedDel: payload.result?.deleteRecordingAfterDays || null,
     };
   } else {
     return false;
@@ -102,6 +105,7 @@ export const createLiveInput = async (title: string): Promise<liveInputDetails |
       srtId: payload.result?.srt?.streamId || '',
       srtUrl: payload.result?.srt?.url || '',
       watch: `https://customer-igynxd2rwhmuoxw8.cloudflarestream.com/${payload.result.uid}/iframe?force-flavor=llhls&maxLiveSyncPlaybackRate=1.1`,
+      schedDel: payload.result?.deleteRecordingAfterDays || null,
     };
   } else {
     return false;
@@ -116,7 +120,7 @@ export const deleteLiveInput = async (id: string): Promise<boolean> => {
   });
 
   if (!ok) {
-    process.exit();
+    return false;
   }
 
   const response = await fetch(`${process.env.CF_API}/${process.env.CF_ACCT_TAG}/stream/live_inputs/${id}`, {
@@ -132,5 +136,24 @@ export const deleteLiveInput = async (id: string): Promise<boolean> => {
   } else {
     console.log(chalk.red(`Failed to delete ${id}`));
     return false;
+  }
+};
+
+
+export const purgeLiveInput = async (id: string): Promise<void> => {
+  const ok = await yesno({
+    // @TODO: Would be cool to get its info...
+    question: `${chalk.red('Really purge')} LTV recordings on ${id}? Cannot undo. (y/n)`,
+    defaultValue: null,
+  });
+
+  if (!ok) {
+    return;
+  }
+
+  const recordings = await getVodVideos(id);
+
+  for (const video in recordings) {
+    await deleteVodVideo(recordings[video].uid, true);
   }
 };
