@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { getVodVideos } from './vod';
-import { createLiveInput, deleteLiveInput, getLiveInput, purgeLiveInput } from './live';
+import { createLiveInput, deleteLiveInput, getLiveInput, getLiveInputs, purgeLiveInput } from './live';
 import { format } from './output';
 import cliSelect from 'cli-select';
 import prompts from 'prompts';
@@ -28,6 +28,7 @@ export const menuVod = async (liveId?: string): Promise<any[]> => {
 export const menuLive = async (): Promise<void> => {
   cliSelect({
     values: {
+      'list': 'List all Live Inputs',
       'lookup': 'Get Live Input',
       'create': 'Create New Live Input',
     },
@@ -39,6 +40,18 @@ export const menuLive = async (): Promise<void> => {
       message: (op.id === 'create') ? 'Input name?' : 'Input ID?',
     });
     switch (op.id) {
+      case 'list':
+        // eslint-disable-next-line no-case-declarations
+        const inputs = await getLiveInputs();
+        console.log(inputs);
+        await cliSelect({
+          values: inputs.map(input => `${input.uid}: ${input.meta.name}`),
+          valueRenderer: (value, selected) => (selected) ? chalk.underline(value) : value,
+        }).then(async (input) => {
+          // @ts-ignore
+          await menuLiveSingle(inputs[input.id].uid);
+        });
+        break;
       case 'lookup':
         await menuLiveSingle(response.id);
         break;

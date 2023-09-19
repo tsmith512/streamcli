@@ -45,7 +45,7 @@ export const getLiveInput = async (id: string): Promise<liveInputDetails | false
   }
 };
 
-export const getLiveInputs = async () => {
+export const getLiveInputs = async (): Promise<any[]> => {
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   const inputs: any[] = [];
   let count = -1;
