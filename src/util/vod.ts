@@ -43,6 +43,35 @@ export const getVodVideos = async (liveId?: string): Promise<any[]> => {
   return report;
 };
 
+export const getVodVideo = async (id: string): Promise<any | false > => {
+  const response = await fetch(`${process.env.CF_API}/${process.env.CF_ACCT_TAG}/stream/${id}`, {
+    headers: {
+      'Authorization': `Bearer ${process.env.CF_STREAM_KEY}`,
+    },
+  });
+
+  if (!response.ok) {
+    debug('info', `HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  const payload = await response.json();
+
+  if (payload.success && payload.result?.uid) {
+    return {
+      name: payload.result?.meta?.filename || null,
+      state: payload.result?.status?.state || null,
+      created: payload.result?.created || null,
+      scheduledDeletion: payload.result?.scheduledDeletion,
+      requireSignedURLs: payload.result?.requireSignedURLs,
+      allowedOrigins: JSON.stringify(payload.result?.allowedOrigins) || null,
+      preview: payload.result?.preview || null,
+    };
+  } else {
+    return false;
+  }
+};
+
+
 export const deleteVodVideo = async (id: string, confirmed = false): Promise<boolean> => {
   const ok = confirmed || await yesno({
     question: `${chalk.red('Really delete')} video? Cannot undo. (y/n)`,
@@ -65,6 +94,31 @@ export const deleteVodVideo = async (id: string, confirmed = false): Promise<boo
     return true;
   } else {
     console.log(chalk.red(`Failed to delete ${id}`));
+    return false;
+  }
+};
+
+export const updateVodSignedURL = async (id: string): Promise<boolean> => {
+  const req = await yesno({
+    question: `${chalk.red('Require signed URL')} to watch the video? (y/n)`,
+    defaultValue: null,
+  });
+
+  const response = await fetch(`${process.env.CF_API}/${process.env.CF_ACCT_TAG}/stream/${id}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.CF_STREAM_KEY}`,
+    },
+    body: JSON.stringify({
+      requireSignedURLs: req,
+    })
+  });
+
+  if (response.ok) {
+    console.log(chalk.yellow(`Updated ${id}`));
+    return true;
+  } else {
+    console.log(chalk.red(`Failed to update ${id}`));
     return false;
   }
 };

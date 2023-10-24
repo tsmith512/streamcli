@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { getVodVideos } from './vod';
+import { deleteVodVideo, getVodVideo, getVodVideos, updateVodSignedURL } from './vod';
 import { createLiveInput, deleteLiveInput, getLiveInput, getLiveInputs, purgeLiveInput } from './live';
 import { format } from './output';
 import cliSelect from 'cli-select';
@@ -8,25 +8,29 @@ import yesno from 'yesno';
 import { table } from 'table';
 import { debug } from './debug';
 
-export const menuVod = async (liveId?: string): Promise<any[]> => {
-  await getVodVideos(liveId).then(async (results) => {
-    if (results.length) {
-      console.log(table([
-        ['Video ID', 'Title'],
-        ...results.map(r => [r.uid, r.meta?.name || ''])
-      ]));
-
-      return results;
-    } else {
-      debug('info', 'No videos found.');
+export const menuVod = async (liveId?: string): Promise<void> => {
+  await cliSelect({
+    values: {
+      'lookup': 'Get Video',
+      'exit': 'Exit',
+    },
+    valueRenderer: (value, selected) => (selected) ? chalk.underline(value) : value,
+  }).then(async (op) => {
+    if (op.id === 'lookup') {
+      const response = await prompts({
+        type: 'text',
+        name: 'id',
+        message: 'Video ID?',
+      });
+      await menuVodSingle(response.id);
+    } else if (op.id === 'exit') {
+      return false;
     }
-  });
-
-  return  [];
+  })
 };
 
 export const menuLive = async (): Promise<void> => {
-  cliSelect({
+  await cliSelect({
     values: {
       'list': 'List all Live Inputs',
       'lookup': 'Get Live Input',
@@ -104,6 +108,42 @@ export const menuLiveSingle = async (id: string): Promise<void> => {
         case 'purge':
           await purgeLiveInput(id);
           return true;
+          break;
+        case 'exit':
+          return false;
+          break;
+      }
+      return true;
+    });
+  }
+};
+
+export const menuVodSingle = async (id: string): Promise<void> => {
+  let loop = true;
+
+  // Show Video details
+  while (loop) {
+    loop = await cliSelect({
+      values: {
+        'show': 'Show Video details',
+        'delete': 'Delete Video',
+        'signed': 'Set Signed URL requirement',
+        'exit': 'Exit',
+      },
+      valueRenderer: (value, selected) => (selected) ? chalk.underline(value) : value,
+    }).then(async (op) => {
+      switch (op.id) {
+        case 'show':
+          await getVodVideo(id).then(async (x) => {
+            format(x);
+          });
+          break;
+        case 'delete':
+          await deleteVodVideo(id);
+          return false;
+          break;
+        case 'signed':
+          await updateVodSignedURL(id);
           break;
         case 'exit':
           return false;
