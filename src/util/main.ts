@@ -31,33 +31,42 @@ export const menuLive = async (): Promise<void> => {
       'list': 'List all Live Inputs',
       'lookup': 'Get Live Input',
       'create': 'Create New Live Input',
+      'exit': 'Exit'
     },
     valueRenderer: (value, selected) => (selected) ? chalk.underline(value) : value,
   }).then(async (op) => {
-    const response = await prompts({
-      type: 'text',
-      name: 'id',
-      message: (op.id === 'create') ? 'Input name?' : 'Input ID?',
-    });
-    switch (op.id) {
-      case 'list':
-        // eslint-disable-next-line no-case-declarations
-        const inputs = await getLiveInputs();
-        console.log(inputs);
-        await cliSelect({
-          values: inputs.map(input => `${input.uid}: ${input.meta.name}`),
-          valueRenderer: (value, selected) => (selected) ? chalk.underline(value) : value,
-        }).then(async (input) => {
-          // @ts-ignore
-          await menuLiveSingle(inputs[input.id].uid);
-        });
-        break;
-      case 'lookup':
-        await menuLiveSingle(response.id);
-        break;
-      case 'create':
-        await createLiveInput(response.id).then(x => format(x));
-        break;
+    if (op.id === 'list') {
+      const inputs = await getLiveInputs();
+      console.log(inputs);
+      await cliSelect({
+        values: inputs.map(input => `${input.uid}: ${input.meta.name}`),
+        valueRenderer: (value, selected) => (selected) ? chalk.underline(value) : value,
+      }).then(async (input) => {
+        // @ts-ignore
+        await menuLiveSingle(inputs[input.id].uid);
+      });
+    } else if (op.id === 'create') {
+      const response = await prompts({
+        type: 'text',
+        name: 'id',
+        message: 'Input name?',
+      });
+      await createLiveInput(response.id).then(x => format(x));
+    } else if (op.id === 'lookup') {
+      const response = await prompts({
+        type: 'text',
+        name: 'id',
+        message: 'Input ID?',
+      });
+      await menuLiveSingle(response.id);
+    } else if (op.id === 'exit') {
+      return false;
+    }
+
+    return true;
+  }).then((loop) => {
+    if (loop) {
+      menuLive();
     }
   });
 };
@@ -73,7 +82,7 @@ export const menuLiveSingle = async (id: string): Promise<void> => {
         'delete': 'Delete Live Input',
         'list': 'List LTV recorings',
         'purge': 'Purge LTV recordings',
-        'exit': 'Exit',
+        'exit': '<-- Go Back',
       },
       valueRenderer: (value, selected) => (selected) ? chalk.underline(value) : value,
     }).then(async (op) => {

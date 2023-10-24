@@ -8,18 +8,6 @@ if (!process.env.CF_STREAM_KEY || !process.env.CF_ACCT_TAG) {
   process.exit();
 }
 
-/**
- * Print usage information
- */
-const readme = () => {
-  console.log(`${chalk.blue('# Stream Hacks')}
-Usage: npm run <command>
-
-Supported commands:
-  - Nothin' yet. Chill.`);
-};
-
-
 cliSelect({
   values: {
     live: 'Live',
@@ -34,8 +22,7 @@ cliSelect({
     case 'live':
       menuLive();
       break;
-    default:
-      readme();
-      break;
+    case 'exit':
+      return false;
   }
 });
