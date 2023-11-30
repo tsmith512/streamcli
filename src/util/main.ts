@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { deleteVodVideo, getVodVideo, getVodVideos, updateVodSignedURL } from './vod';
+import { deleteVodVideo, getVodSignedURL, getVodVideo, getVodVideos, makeVodClip, setVodSignedURL } from './vod';
 import { createLiveInput, deleteLiveInput, getLiveInput, getLiveInputs, purgeLiveInput } from './live';
 import { format } from './output';
 import cliSelect from 'cli-select';
@@ -41,7 +41,6 @@ export const menuLive = async (): Promise<void> => {
   }).then(async (op) => {
     if (op.id === 'list') {
       const inputs = await getLiveInputs();
-      console.log(inputs);
       await cliSelect({
         values: inputs.map(input => `${input.uid}: ${input.meta.name}`),
         valueRenderer: (value, selected) => (selected) ? chalk.underline(value) : value,
@@ -98,7 +97,9 @@ export const menuLiveSingle = async (id: string): Promise<void> => {
           return true;
           break;
         case 'list':
-          await menuVod(id);
+          // @ts-ignore
+          const response = await getVodVideos(id);
+          format(response.map((r) => [r.uid, r.meta?.name]));
           return true;
           break;
         case 'delete':
@@ -126,8 +127,10 @@ export const menuVodSingle = async (id: string): Promise<void> => {
     loop = await cliSelect({
       values: {
         'show': 'Show Video details',
+        'clip': 'Create Clip from Video',
         'delete': 'Delete Video',
         'signed': 'Set Signed URL requirement',
+        'token': 'Get Signed URL for playback',
         'exit': 'Exit',
       },
       valueRenderer: (value, selected) => (selected) ? chalk.underline(value) : value,
@@ -138,12 +141,24 @@ export const menuVodSingle = async (id: string): Promise<void> => {
             format(x);
           });
           break;
-        case 'delete':
+        case 'clip':
+            await makeVodClip(id).then((x) => {
+              if (x) {
+                console.log(`Clip created: ${x}`);
+              } else {
+                console.log(`Creating clip failed.`);
+              }
+            });
+          break;
+          case 'delete':
           await deleteVodVideo(id);
           return false;
           break;
         case 'signed':
-          await updateVodSignedURL(id);
+          await setVodSignedURL(id);
+          break;
+        case 'token':
+          await getVodSignedURL(id);
           break;
         case 'exit':
           return false;
