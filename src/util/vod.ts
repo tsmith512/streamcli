@@ -125,6 +125,35 @@ export const setVodSignedURL = async (id: string): Promise<boolean> => {
   }
 };
 
+/**
+ * Set the Creator ID on a VOD video.
+ *
+ * @param videoId (string) VOD video id
+ * @param creator (string) creator label
+ * @returns Promise<boolean> of success
+ */
+export const setVodCreator = async(videoId: string, creator: string): Promise<boolean> => {
+  const url = `${process.env.CF_API}/${process.env.CF_ACCT_TAG}/stream/${videoId}`;
+
+  const content = JSON.stringify({'creator': creator});
+
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${process.env.CF_STREAM_KEY}`,
+    },
+    method: 'POST',
+    body: content,
+  });
+
+  if (!response.ok) {
+    console.log(await response.json())
+    return false;
+  } else {
+    return true;
+  }
+}
+
+
 export const makeVodClip = async (id: string): Promise<string | false> => {
   const start = await prompts({
     type: 'text',
