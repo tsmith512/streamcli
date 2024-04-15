@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { deleteVodVideo, getVodSignedURL, getVodVideo, getVodVideos, makeVodClip, setVodSignedURL } from './vod';
+import { deleteVodVideo, getVodSignedURL, getVodVideo, getVodVideos, makeVodClip, setVodMP4, setVodSignedURL } from './vod';
 import { createLiveInput, deleteLiveInput, getLiveInput, getLiveInputs, purgeLiveInput } from './live';
 import { format } from './output';
 import cliSelect from 'cli-select';
@@ -188,6 +188,7 @@ export const menuVodSingle = async (id: string): Promise<void> => {
         'delete': 'Delete Video',
         'signed': 'Set Signed URL requirement',
         'token': 'Get Signed URL for playback',
+        'mp4': 'MP4 Downloads',
         'exit': 'Exit',
       },
       valueRenderer: (value, selected) => (selected) ? chalk.underline(value) : value,
@@ -216,6 +217,10 @@ export const menuVodSingle = async (id: string): Promise<void> => {
           break;
         case 'token':
           await getVodSignedURL(id);
+          break;
+          break;
+        case 'mp4':
+          await setVodMP4(id);
           break;
         case 'exit':
           return false;

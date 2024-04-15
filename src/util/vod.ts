@@ -3,6 +3,7 @@ import { debug } from "./debug";
 import yesno from "yesno";
 import crypto, { sign } from 'crypto';
 import prompts from 'prompts';
+import { format } from "./output";
 
 
 /**
@@ -133,6 +134,53 @@ export const setVodSignedURL = async (id: string): Promise<boolean> => {
     console.log(chalk.red(`Failed to update ${id}`));
     return false;
   }
+};
+
+export const setVodMP4 = async (id: string): Promise<boolean> => {
+  const lookup = await fetch(`${process.env.CF_API}/${process.env.CF_ACCT_TAG}/stream/${id}/downloads`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${process.env.CF_STREAM_KEY}`,
+    },
+  }).then(res => res.json());
+
+  const enabled = typeof lookup?.result?.default !== 'undefined' ?? false;
+
+  if (enabled) {
+    console.log(`Video ${id} ${chalk.green('is')} enabled for MP4 downloads.`);
+    format(lookup.result.default);
+  } else {
+    console.log(`Video ${id} ${chalk.red('is not')} enabled for MP4 downloads.`);
+  }
+
+  const swap = await yesno({
+    question: `${chalk.red(enabled ? 'Turn off' : 'Turn on')} MP4 Downloads for this video? (y/n)`,
+    defaultValue: null,
+  });
+
+  if (swap) {
+    const response = await fetch(`${process.env.CF_API}/${process.env.CF_ACCT_TAG}/stream/${id}/downloads`, {
+      method: enabled ? 'DELETE' : 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.CF_STREAM_KEY}`,
+      }
+    });
+
+    if (response.ok) {
+      console.log(chalk.yellow(`Updated ${id}`));
+      if (!enabled) {
+        // It _was_ disabled and we _did_ swap, so it'll be enabled now:
+        const result = await response.json();
+        format(result.result.default);
+      }
+      return true;
+    } else {
+      console.log(chalk.red(`Failed to update ${id}`));
+      return false;
+    }
+  }
+
+  return true;
 };
 
 /**
