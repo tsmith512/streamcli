@@ -12,6 +12,7 @@ export const menuVod = async (liveId?: string): Promise<void> => {
   await cliSelect({
     values: {
       'lookup': 'Get Video',
+      'list': 'List Videos',
       'exit': 'Exit',
     },
     valueRenderer: (value, selected) => (selected) ? chalk.underline(value) : value,
@@ -23,6 +24,53 @@ export const menuVod = async (liveId?: string): Promise<void> => {
         message: 'Video ID?',
       });
       await menuVodSingle(response.id);
+    } else if (op.id === 'list') {
+      const videos = await getVodVideos();
+      let uid = null;
+
+      // This paginator situation is hacky since cli-select doesn't seem to
+      // include a way to do it natively.
+      for (let i = 0; i < videos.length; i += 10) {
+        const start = i;
+        let end = start + 10;
+        let final = 'Next';
+
+        if (end > videos.length) {
+          end = videos.length;
+          final = 'Exit';
+        }
+
+        const thisBatch = videos.slice(start, end);
+        thisBatch.push(final);
+
+        uid = await cliSelect({
+          values:
+            thisBatch
+              .map(video =>
+                (typeof video === 'string')
+                ? video
+                : `${video.uid}: ${video.meta.name} ${video.creator ? '(' + video.creator + ')' : ''}`),
+          valueRenderer: (value, selected) => (selected) ? chalk.underline(value) : value,
+        }).then(async (v) => {
+          // Type safety: we're using arrays (so index will be a number) but this
+          // library does support doing other things.
+          const id = v.id as number;
+          console.log(`--> ${v.value}`);
+
+          if (thisBatch?.[id]?.uid) {
+            return thisBatch[id].uid;
+          }
+          return null;
+        });
+
+        if (uid) {
+          break;
+        }
+      }
+      if (uid) {
+        await menuVodSingle(uid);
+      }
+      return true;
     } else if (op.id === 'exit') {
       return false;
     }
@@ -97,8 +145,7 @@ export const menuLiveSingle = async (id: string): Promise<void> => {
           return true;
           break;
         case 'list':
-          // @ts-ignore
-          const response = await getVodVideos(id);
+          const response = await getVodVideos('live', id);
           format(response.map((r) => [r.uid, r.meta?.name]));
           return true;
           break;

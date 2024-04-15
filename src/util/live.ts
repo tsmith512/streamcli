@@ -151,7 +151,7 @@ export const purgeLiveInput = async (id: string): Promise<void> => {
     return;
   }
 
-  const recordings = await getVodVideos(id);
+  const recordings = await getVodVideos('live', id);
 
   for (const video in recordings) {
     await deleteVodVideo(recordings[video].uid, true);

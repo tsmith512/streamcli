@@ -10,13 +10,23 @@ import prompts from 'prompts';
  *
  * @returns (any[]) array of VOD Videos (will include saved Lives)
  */
-export const getVodVideos = async (liveId?: string): Promise<any[]> => {
+export const getVodVideos = async (field?: string, match?: string): Promise<any[]> => {
+  if (field && !match) {
+    console.log(chalk.red(`Must provide a value to match in field ${field}.`));
+    return [];
+  }
+
   let url = `${process.env.CF_API}/${process.env.CF_ACCT_TAG}/stream`;
 
   // If we got a Live Input ID it means we are looking for LTV recordings off
   // that ID specifically.
-  if (liveId) {
-    url += `/live_inputs/${liveId}/videos`;
+  if (field === 'live') {
+    url += `/live_inputs/${match}/videos`;
+  }
+
+  // If we got a Creator ID, filter the list
+  if (field === 'creator') {
+    url += `?`
   }
 
   /* eslint-disable  @typescript-eslint/no-explicit-any */
@@ -60,7 +70,7 @@ export const getVodVideo = async (id: string): Promise<any | false > => {
 
   if (payload.success && payload.result?.uid) {
     return {
-      name: payload.result?.meta?.filename || null,
+      name: payload.result?.meta?.name || null,
       state: payload.result?.status?.state || null,
       created: payload.result?.created || null,
       scheduledDeletion: payload.result?.scheduledDeletion,
