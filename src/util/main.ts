@@ -4,11 +4,8 @@ import { createLiveInput, deleteLiveInput, getLiveInput, getLiveInputs, purgeLiv
 import { format } from './output';
 import cliSelect from 'cli-select';
 import prompts from 'prompts';
-import yesno from 'yesno';
-import { table } from 'table';
-import { debug } from './debug';
 
-export const menuVod = async (liveId?: string): Promise<void> => {
+export const menuVod = async (): Promise<void> => {
   await cliSelect({
     values: {
       'lookup': 'Get Video',
@@ -25,7 +22,20 @@ export const menuVod = async (liveId?: string): Promise<void> => {
       });
       await menuVodSingle(response.id);
     } else if (op.id === 'list') {
-      const videos = await getVodVideos();
+      const creator = await prompts({
+        type: 'text',
+        name: 'creator',
+        message: 'Search by creator ID? (blank for no)',
+      });
+
+      let videos;
+
+      if (creator.creator) {
+        videos = await getVodVideos('creator', creator.creator);
+      } else {
+        videos = await getVodVideos();
+      }
+
       let uid = null;
 
       // This paginator situation is hacky since cli-select doesn't seem to

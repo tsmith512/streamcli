@@ -26,7 +26,7 @@ export const getVodVideos = async (field?: string, match?: string): Promise<any[
 
   // If we got a Creator ID, filter the list
   if (field === 'creator') {
-    url += `?`
+    url += `?creator=${match}`;
   }
 
   /* eslint-disable  @typescript-eslint/no-explicit-any */
