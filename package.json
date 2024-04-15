@@ -1,7 +1,7 @@
 {
-  "name": "stream-hacks",
+  "name": "streamcli",
   "version": "2.0.0",
-  "description": "Stream API client for PM tasks",
+  "description": "Cloudflare Stream API client CLI for demo, debugging, experimentation",
   "scripts": {
     "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
     "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
